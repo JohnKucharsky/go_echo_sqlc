@@ -1,8 +1,6 @@
 package main
 
 import (
-	"database/sql"
-	"github.com/JohnKucharsky/go_echo_sqlc/internal/database"
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -13,10 +11,6 @@ import (
 	"net/http"
 	"os"
 )
-
-type apiConfig struct {
-	DB *database.Queries
-}
 
 type (
 	CustomValidator struct {
@@ -54,16 +48,6 @@ func main() {
 	}
 	//end db
 
-	//db connection
-	conn, err := sql.Open("postgres", dbAddressString)
-	if err != nil {
-		log.Fatal("Can't connect to db", err.Error())
-	}
-	log.Print("Connected to db")
-	database.New(conn)
-	//apiCfg := apiConfig{DB: db}
-	//end db connection
-
 	//server setup
 	e := echo.New()
 	e.Validator = &CustomValidator{validator: validator.New()}
@@ -91,6 +75,6 @@ func main() {
 	)
 	//end server setup
 
-	routes(e)
+	routes(e, dbAddressString)
 	e.Logger.Fatal(e.Start(":" + portString))
 }
