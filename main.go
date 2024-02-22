@@ -51,6 +51,7 @@ func main() {
 	//server setup
 	e := echo.New()
 	e.Validator = &CustomValidator{validator: validator.New()}
+
 	logger := logrus.New()
 	e.Use(
 		middleware.RequestLoggerWithConfig(
@@ -75,6 +76,7 @@ func main() {
 	)
 	//end server setup
 
-	routes(e, dbAddressString)
+	apiGroup := e.Group("/api")
+	routes(apiGroup, dbAddressString)
 	e.Logger.Fatal(e.Start(":" + portString))
 }

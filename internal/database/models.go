@@ -9,6 +9,20 @@ import (
 	"time"
 )
 
+type Order struct {
+	ID        int32
+	UpdatedAt time.Time
+	ProductID int32
+	UserID    int32
+}
+
+type Product struct {
+	ID        int32
+	Name      string
+	Serial    sql.NullString
+	UpdatedAt time.Time
+}
+
 type User struct {
 	ID        int32
 	FirstName string
