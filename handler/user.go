@@ -2,6 +2,8 @@ package handler
 
 import (
 	"context"
+	"database/sql"
+	"github.com/JohnKucharsky/go_echo_sqlc/internal/database"
 	"github.com/JohnKucharsky/go_echo_sqlc/serializer"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -32,6 +34,14 @@ func (apiConfig *DatabaseController) GetUsers(c echo.Context) error {
 
 	users, err := apiConfig.Database.DB.GetUsers(
 		context.Background(),
+		database.GetUsersParams{
+			FName:     "",
+			LName:     "",
+			SortOrder: "",
+			OrderBy:   "",
+			Offset:    sql.NullInt32{},
+			Limit:     sql.NullInt32{},
+		},
 	)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusConflict, err.Error())

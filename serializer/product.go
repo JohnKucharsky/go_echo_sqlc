@@ -17,13 +17,13 @@ type Product struct {
 	ProductBody
 }
 
-func DatabaseProductToProduct(dbUser database.Product) Product {
+func DatabaseProductToProduct(dbProduct database.Product) Product {
 	return Product{
-		ID:        dbUser.ID,
-		UpdatedAt: dbUser.UpdatedAt,
+		ID:        dbProduct.ID,
+		UpdatedAt: dbProduct.UpdatedAt,
 		ProductBody: ProductBody{
-			Name:   dbUser.Name,
-			Serial: utils.SqlNullStringToString(dbUser.Serial),
+			Name:   dbProduct.Name,
+			Serial: utils.SqlNullStringToString(dbProduct.Serial),
 		},
 	}
 }

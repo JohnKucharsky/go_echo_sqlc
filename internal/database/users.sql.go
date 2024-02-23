@@ -61,10 +61,54 @@ func (q *Queries) GetOneUser(ctx context.Context, id int32) (User, error) {
 
 const getUsers = `-- name: GetUsers :many
 select id, first_name, last_name, updated_at from users
+WHERE CASE WHEN LENGTH($1::text) != 0
+    THEN first_name like $1::text ELSE TRUE END
+  AND
+    CASE WHEN LENGTH($2::text) != 0
+      THEN last_name like $2::text ELSE TRUE END
+ORDER BY
+    CASE WHEN $3::text = 'asc' THEN
+             CASE $4::text
+                 WHEN 'first_name' THEN first_name
+                 WHEN 'last_name' THEN last_name
+                 ELSE NULL
+                 END
+         ELSE
+             NULL
+        END
+        ASC,
+
+    CASE WHEN $3::text = 'desc' THEN
+             CASE $4::text
+                 WHEN 'first_name' THEN first_name
+                 WHEN 'last_name' THEN last_name
+                 ELSE NULL
+                 END
+         ELSE
+             NULL
+        END
+        DESC
+limit $6 offset $5
 `
 
-func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
-	rows, err := q.db.QueryContext(ctx, getUsers)
+type GetUsersParams struct {
+	FName     string
+	LName     string
+	SortOrder string
+	OrderBy   string
+	Offset    sql.NullInt32
+	Limit     sql.NullInt32
+}
+
+func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, error) {
+	rows, err := q.db.QueryContext(ctx, getUsers,
+		arg.FName,
+		arg.LName,
+		arg.SortOrder,
+		arg.OrderBy,
+		arg.Offset,
+		arg.Limit,
+	)
 	if err != nil {
 		return nil, err
 	}

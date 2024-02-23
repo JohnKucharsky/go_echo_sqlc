@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
@@ -42,40 +43,43 @@ func (q *Queries) DeleteOrder(ctx context.Context, id int32) error {
 	return err
 }
 
-const getOneOrder = `-- name: GetOneOrder :one
-select id, updated_at, product_id, user_id from orders where id = $1
+const getOrders = `-- name: GetOrders :many
+SELECT orders.id as order_id,
+       products.name as product_name,
+       products.serial as product_serial,
+       users.first_name as user_name,
+       users.last_name as user_last_name,
+       orders.updated_at as updated_at
+FROM orders
+         JOIN products ON orders.product_id = products.id
+         JOIN users ON orders.user_id = users.id
 `
 
-func (q *Queries) GetOneOrder(ctx context.Context, id int32) (Order, error) {
-	row := q.db.QueryRowContext(ctx, getOneOrder, id)
-	var i Order
-	err := row.Scan(
-		&i.ID,
-		&i.UpdatedAt,
-		&i.ProductID,
-		&i.UserID,
-	)
-	return i, err
+type GetOrdersRow struct {
+	OrderID       int32
+	ProductName   string
+	ProductSerial sql.NullString
+	UserName      string
+	UserLastName  sql.NullString
+	UpdatedAt     time.Time
 }
 
-const getOrders = `-- name: GetOrders :many
-select id, updated_at, product_id, user_id from orders
-`
-
-func (q *Queries) GetOrders(ctx context.Context) ([]Order, error) {
+func (q *Queries) GetOrders(ctx context.Context) ([]GetOrdersRow, error) {
 	rows, err := q.db.QueryContext(ctx, getOrders)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Order
+	var items []GetOrdersRow
 	for rows.Next() {
-		var i Order
+		var i GetOrdersRow
 		if err := rows.Scan(
-			&i.ID,
+			&i.OrderID,
+			&i.ProductName,
+			&i.ProductSerial,
+			&i.UserName,
+			&i.UserLastName,
 			&i.UpdatedAt,
-			&i.ProductID,
-			&i.UserID,
 		); err != nil {
 			return nil, err
 		}
